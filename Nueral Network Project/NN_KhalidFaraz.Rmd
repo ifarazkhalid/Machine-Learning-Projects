@@ -1,0 +1,81 @@
+Nueral Network Project
+By: Faraz Khalid
+Checking if a bank note is authentic or fake.
+
+```{r}
+dataframe <- read.csv('bank_auth_data.csv')
+
+#Check if the data frame is loaded correctly or not.
+head(dataframe)
+tail(dataframe)
+str(dataframe)
+```
+
+
+Splitting the data into train and test sets. Dividing data into test and train sets. Train set is 70% of the total data while test set is the remaining 30%.
+```{r}
+library(caTools)
+set.seed(2018)
+
+split <- sample.split(dataframe$Class, SplitRatio = 0.7)
+
+trainSet <- subset(dataframe, split == TRUE)
+testSet <- subset(dataframe, split == FALSE)
+
+```
+
+Installing and loading the nueral network library. Also calling help function to get to know more about neural network if you do not know it in advance. Help tells you the usage and what each arugumnet does.
+```{r}
+install.packages('neuralnet')
+library(neuralnet)
+
+#If you do not know what Neural Net is, help function would be a great way to discover it.
+help("neuralnet")
+```
+
+Creating a NN model.
+```{r}
+NueralNetworkModel <- neuralnet(Class ~ Image.Var+Image.Skew+Image.Curt+Entropy,
+                                data = trainSet, hidden = c(5,3), linear.output = FALSE)
+
+predictions <- compute(NueralNetworkModel, testSet[1:4])
+predictions <- sapply(predictions$net.result, round)
+
+head(predictions)
+
+#Table to create confusion matrix
+table(predictions, testSet$Class)
+
+```
+
+Because we got 100% accuracy for our neural network, this is not something we should believe at first thought. We will build a random forest model to double check our neural nets.
+```{r}
+install.packages('randomForest')
+library(randomForest)
+
+dataframe$Class = factor(dataframe$Class)
+
+library(caTools)
+set.seed(2018)
+
+split <- sample.split(dataframe$Class, SplitRatio = 0.7)
+
+trainSet <- subset(dataframe, split == TRUE)
+testSet <- subset(dataframe, split == FALSE)
+
+```
+
+Creating a Random Forest Model
+```{r}
+randomForestModel <- randomForest(Class ~ ., data = trainSet)
+
+randomForestPred <- predict(randomForestModel, testSet)
+table(randomForestPred, testSet$Class)
+
+accuracy = ((226+183)/(226+183+3))
+print(accuracy)
+```
+
+Random Forest worked amazing as well.
+
+
