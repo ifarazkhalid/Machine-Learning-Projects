@@ -1,0 +1,178 @@
+#Name: Faraz Khalid
+#Class: Machine Learning - CS 4375 - Section 501
+#Assignment: Homework # 2 - Linear Regression.
+
+
+
+#STEP 1
+```{r}
+
+library(ISLR)
+names(Auto)
+summary(Auto)
+
+#Data divided randomly into train and test sets.
+attach(Auto)
+sampleSize <- floor(0.75 * nrow(Auto))
+
+#seed set to 1234 as instructed.
+set.seed(1234)
+
+trainedSet <- sample(seq_len(nrow(Auto)), size = sampleSize)
+
+train <- Auto[trainedSet, ]
+test <- Auto[-trainedSet, ]
+
+```
+
+#STEP # 2
+```{r}
+data(Auto)
+LinearModelFit <- lm(mpg ~ horsepower, data = train)
+LinearModelFit$coefficients
+summary(LinearModelFit)
+
+mse <- mean(LinearModelFit$residuals^2)
+print(mse)
+
+```
+
+#Step 3
+#{
+
+# a) Y = a + bX
+
+# b) Yeah, there is a strong relationship b/w horsepower and mpg.
+
+# c) Negative Correlation.
+
+# d) The RSE is 4.993. R^2 is 0.5914 and F-Stat is 422.6 on 1.
+
+# e) The MSE is 24.7608 which if a little off to 0 which is considered the
+#    best fit.
+
+
+#}
+
+#Step 4
+```{r}
+plot(train$mpg~train$horsepower, data=train)
+abline(LinearModelFit, col="blue")
+
+predict(LinearModelFit, data.frame(horsepower = c(98)), interval="confidence")
+
+#The predicted value is a good fit on the graph created in this question.
+```
+
+#Step 5
+
+```{r}
+pred <- predict(LinearModelFit, newdata=test)
+cor(pred, test$mpg)
+#The correlation is good and it seems like the two values are very well
+#correlated.
+
+
+mean((test$mpg- predict.lm(LinearModelFit, test)) ^ 2)
+#The MSE for this and the MSE for training data are fairly close with a difference of almost 3 which seems a good fit.
+```
+
+#Step 6
+
+```{r}
+par(mfrow=c(2,2))
+plot(LinearModelFit)
+#Yes. From the residuals in the plotted graphs, we can see they are not very linear and thus can safely say that we see non-linearity.
+```
+#Step 7
+```{r}
+data(Auto)
+
+LinearModelFit2 <- lm(log(mpg) ~ horsepower, data = train)
+LinearModelFit2$coefficients
+summary(LinearModelFit2)
+
+#The R^2 value for this model tends to be more higher than the one that was done before.
+
+
+```
+#Step 8
+```{r}
+plot((train$mpg)~train$horsepower, data=train)
+abline(LinearModelFit2, col="red")
+```
+
+#Step 9
+```{r}
+pred <- predict(LinearModelFit2, newdata=test)
+cor(pred, log(test$mpg))
+
+#The correlation for this and the model above tend to be close as well.
+
+mean((test$mpg- predict.lm(LinearModelFit, test)) ^ 2)
+```
+
+#step 10
+```{r} 
+par(mfrow=c(2,2))
+plot(LinearModelFit2)
+
+#The plot on this one is a little different than the other linear model but we see similarity in both as well.
+```
+
+#Step 11
+```{r}
+pairs(Auto)
+#We see mpg has a good cor with displacement, yaer and accelaration.
+#cylinders link well with mpg, horsepower and other things as well.
+#
+```
+#Step 12
+```{r}
+#cor(Auto[,unlist(lapply(Auto, is.numeric))])
+
+# Examine correlation between variables
+round(cor(Auto[, !sapply(Auto, is.factor)]), digits = 4)
+
+#cylinder and weight are correlated in a positive way. Cylinders and displacement have a high positive correl too.
+
+#mpg and weight have a good negative correlation and also horsepower and mpg.
+```
+
+#Step 13
+```{r}
+# Multiple linear regression
+#   model = "auto.m1", response = "mpg", exclude = "name"
+FirstLinearModelAuto <- lm(mpg ~ . -name, data = Auto)
+
+# View summary of model fit
+summary(FirstLinearModelAuto)
+
+#after revewing the summary we can see that mpg, displacement, weight, year 
+#and origin tend to have statistically significant relationship.
+
+```
+
+#Step 14 
+```{r}
+par(mfcol = c(2, 2))
+plot(FirstLinearModelAuto, ask = F)
+
+#we see a bow shape thing which indicates that non-linearity is present.
+
+#observation 14 has a large statistical leverage.
+which.max(hatvalues(Auto.m1))
+```
+
+#Step 15
+```{r}
+secondLinearModelAuto <- lm(mpg ~ . +displacement:cylinders -name , data = Auto)
+
+summary(secondLinearModelAuto)
+#looking at the summary, we see that displacement and cylinders look very good relationship.
+
+anova(FirstLinearModelAuto, secondLinearModelAuto)
+#because there is a RSS decrease, we can say model 2 is better than model 1.
+```
+
+
