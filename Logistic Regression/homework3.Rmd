@@ -1,0 +1,141 @@
+#Name: Faraz Khalid
+
+#Step - 1
+```{r}
+#loading mlbench
+library(mlbench)
+
+#loading dataframe in memory
+data(BreastCancer)
+
+#running str and head on mlbench
+str(BreastCancer)
+head(BreastCancer)
+
+#summary on just class column
+summary(BreastCancer$Class)
+
+#Get the percentage.
+
+
+#Question-Answers
+
+#a) 699 instances
+#b) Target columns are 10.
+#c) There are 10 predictors. What type of Data?
+#d) Find Percentage.
+
+```
+#Step 2
+```{r}
+glm0 = glm(Class~Cell.size+Cell.shape, data=BreastCancer, family=binomial)
+summary(glm0)
+
+#The error means what it says. A way to think what it means is that the data is possibily linearly seperable.
+```
+#step 3
+```{r}
+BreastCancer$Cell.small <- ifelse(BreastCancer$Cell.size==1, 1, 0)
+BreastCancer$Cell.regular <- ifelse(BreastCancer$Cell.shape==1, 1, 0)
+
+summary(BreastCancer$Cell.size)
+summary(BreastCancer$Cell.shape)
+summary(Cell.small)
+summary(Cell.regular)
+
+#
+```
+```{r}
+attach(BreastCancer)
+layout(matrix(1:2, ncol=2))
+cdplot(Class~Cell.size)
+cdplot(Class~Cell.shape)
+par(mfrow=c(1,2)) 
+
+#Looking at the graphs, we can safely say that the higher the Cell.size and Cell.shape, the higher chances are of it being benign.
+```
+#STEP 5
+```{r}
+plot(Class~Cell.small)
+plot(Class~Cell.regular)
+
+par(mfrow=c(1,2)) 
+
+cdplot(Class~Cell.small)
+cdplot(Class~Cell.regular)
+
+table2 <- table(Class, Cell.small)
+table3 <- table(Class, Cell.regular)
+
+prop.table(table2)
+prop.table(table3)
+
+
+
+#a) 0.0057
+#b) 0.339
+#c) 0.0028
+#d) 0.341
+
+
+```
+#Step6
+```{r}
+set.seed(1234)
+i <- sample(nrow(BreastCancer), nrow(BreastCancer)*0.80, replace=FALSE)
+train <- BreastCancer[i,]
+test <- BreastCancer[-i,]
+```
+
+#Step 7
+```{r}
+#Create a GLM Model
+
+glm2 = glm(Class~Cell.small+Cell.regular, data=train, family=binomial)
+summary(glm2)
+
+#a) Both predictors seem to bee good as they have three stars.
+#b) Because null deviance is greater than residual deviance, we see it is good.
+#c) AIC --> 
+```
+#Step 8
+
+```{r}
+probs <- predict(glm2, newdata=test, type="response")
+pred <- ifelse(probs>0.5, "malignant", "benign" )
+paste("accuracy = ",
+  sum(pred==test$Class)/NROW(test$Class)*100,
+  "%")
+
+#The accuracy is 90%.
+```
+
+#Step9
+```{r}
+#a
+glm2$coefficients[]
+
+#b
+x <- 1.3869 -4.0342 * test$Cell.small[1] + 3.8428 * test$Cell.regular[1]
+x <- 1 / (1 + exp(-x))
+
+x
+
+#d
+percent <- sum(Cell.small==1 & Class=="malignant")/nrow(BreastCancer)
+percent
+
+#a) The coefficients for Cell.small is -4.034158 and Cell.regular is -3.8428.
+#b) 
+#c)
+#d) 
+
+#d
+
+
+```
+
+```{r}
+exp(-4.0342)
+```
+
