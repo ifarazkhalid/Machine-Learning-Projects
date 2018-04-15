@@ -1,0 +1,120 @@
+# Homework 4: Logistic Regression and kNN
+### Sample Solution
+
+#Step 1
+
+```{r}
+#load library ISLR
+library(ISLR)
+#get median value using median function.
+medianValue = median(Auto$mpg)
+#create a var mpgLevel that is 1 if mpg > medianValue, otherwise it is zero.
+mpgLevel = ifelse(Auto$mpg > medianValue, 1, 0)
+#Add it to the dataset Auto.
+Auto$mpglevel = as.factor(mpgLevel)
+#Checking if dataset is correct and mpglevel is added.
+names(Auto)
+```
+
+#Step 2
+
+```{r}
+#setting up a 2x2 graph.
+par(mfrow=c(2,2))
+#plotting a 2x2 with horsepower~mpg and weight~mpg
+plot(Auto$horsepower~Auto$mpg, col=(Auto$mpglevel))
+plot(Auto$weight~Auto$mpg, col=(Auto$mpglevel))
+
+#plotting horsepower~mpglevel and weight~mpglevel
+plot(Auto$horsepower~Auto$mpglevel)
+plot(Auto$weight~Auto$mpglevel)
+```
+
+#Step 3
+
+```{r}
+#setting seed to 1234 so results are same for all.
+set.seed(1234)
+
+
+ind <- sample(2, nrow(Auto), replace=TRUE, prob=c(0.75, 0.25))
+
+#-c(1,9) is there so that mpg and name are excluded as given in the instructions.
+train <- Auto[ind==1,-c(1,9)] 
+test <- Auto[ind==2,-c(1,9)]
+```
+
+#Step 4
+
+```{r}
+#creating a logistic regression model.
+
+#a
+logisticModel <- glm(train$mpglevel~., data=train, family="binomial")
+
+#b
+logisticModelProbs <- predict(logisticModel, newdata=test, type="response")
+logisticModelPred <- rep(0, nrow(test))
+logisticModelPred[logisticModelProbs > 0.5] = 1
+
+#c
+table(logisticModelPred, test$mpglevel)
+
+#d
+mean(logisticModelPred == test$mpglevel)
+```
+
+#Step 5
+
+```{r}
+#a --> creating a KNN model
+library(class)
+pred <- knn(train=train[,1:7], test=test[,1:7], cl=train[,8])
+
+#b --> creating a table and checking mean.
+table(pred, test[,8])
+mean(pred==test[,8])
+```
+
+#Step 6
+
+
+```{r}
+#a --> creating two scale trained and test set with mpg excluded.
+autoScale <- scale(Auto[,-c(9,10)])
+trainScale <- autoScale[ind==1,-1]
+testScale <- autoScale[ind==2,-1]
+
+#b and c
+trainScaleLabels <- Auto[ind==1, 10]
+testScaleLabels <- Auto[ind==2, 10]
+
+#d
+knnPredict <- knn(train = trainScale, test = testScale, cl = trainScaleLabels)
+
+#e
+table(knnPredict, testScaleLabels)
+mean(knnPredict == testScaleLabels)
+```
+
+#Step 7
+```{r}
+
+#a
+#MPG is inversely proportional to horsepower and weight. This is to say that the higher the mpg, the lower the horsepower and weight.
+
+#b
+#That is because in the first graph, the values are continous while in the second one, we have discrete pairs.
+
+#c
+#We had to remove columns because in our algorithm, which mostly takes in numeric and factors, it is not of any use and would only cause harm if charecters are used as one of the predictors.
+
+#d
+#Because then there would be no point in learning the mpg level if mpg was already given.
+
+#e
+#Logistic Regression Model gave us a mean of **0.924**, KNN that was unscaled gave us a mean of **0.87** while KNN scaled provided us with a mean of **0.94**. The best mean was provided by KNN that was scaled, slightly more than our logistic regression model.
+
+#f
+#A KNN model just does what is called lazy learning performing the algorithm on the data that is provided while the LRM (Logistic Regression Model) analyzes how the variables that are used for predictors have an effect on the response variable.
+```
