@@ -1,0 +1,231 @@
+# Name: Faraz Khalid
+# Assignment: Homework 6
+# Description: This homework is about understanding decision trees.
+
+#-------------------------------------------------------------------------------
+#                               ISLR AND DEFAULT DATA
+#-------------------------------------------------------------------------------
+
+# Part 1
+```{r}
+#loading library and attaching it.
+library(ISLR)
+attach(Default)
+
+#Some functions to better understand the data.
+names(Default)
+dim(Default)
+
+```
+
+#Divide data into test and training sets.
+
+```{r}
+set.seed(2017)
+dataframeLength <- nrow(Default)
+train <- sample(seq_len(dataframeLength), size=floor(0.80 * dataframeLength))
+trainingSet <- Default[train,]
+testSet <- Default[-train,]
+```
+
+
+
+# Part2
+
+```{r}
+#creating a logistic model.
+logisticModel = glm(default~., data = trainingSet, family = binomial)
+summary(logisticModel)
+
+#if it is greater than 0.5, then yes otherwise no.
+pred <- predict(logisticModel, newdata = testSet, type = "response")
+pred <- ifelse(pred > 0.5, "Yes", "No")
+
+#creating a table and then calculating mean.
+table(pred, testSet$default)
+mean(pred==testSet$default)
+```
+
+# Part 3
+
+```{r}
+#Creating a decision tree.
+
+#installing and calling library tree.
+install.packages(tree)
+library(tree)
+
+#creating a tree model.
+decisionTreeModel <- tree(default~., trainingSet)
+summary(decisionTreeModel)
+
+#predictions. Creating table and then predicting mean.
+predictions <- predict(decisionTreeModel, testSet, type = "class")
+table(predictions, testSet$default)
+mean(predictions == testSet$default)
+```
+
+#Part 4
+
+```{r}
+#Creating a plot
+plot(decisionTreeModel)
+text(decisionTreeModel, pretty = 0)
+decisionTreeModel
+```
+
+
+# ---------------------------------------------------------------------------
+#                                 HEART DATA
+#----------------------------------------------------------------------------
+
+# Part 1
+
+```{r}
+dataframe <- read.csv("Heart.csv", header = TRUE)
+attach(dataframe)
+
+#removing the first column that is X.
+dataframe <- dataframe[,-1]
+```
+
+#Training and test sets.
+```{r}
+#setting seed to 2017 as described in the problem.
+set.seed(2017)
+dataframeLength <- nrow(dataframe)
+train <- sample(seq_len(dataframeLength), size=floor(0.8*dataframeLength))
+trainingSet <- dataframe[train,]
+testSet <- dataframe[-train,]
+```
+
+
+# Part 2
+
+```{r}
+#Creating a logistic model.
+logisticModel = glm(AHD~., data = trainingSet, family=binomial)
+summary(logisticModel)
+pred <- predict(logisticModel, newdata=testSet, type="response")
+pred <- ifelse(pred > 0.5, "Yes", "No")
+
+table(pred, testSet$AHD)
+#total of correct answers divided by total number of observations.
+accuracy = (29 + 23)/(29 + 23 + 3 + 4)
+#printing accuracy on screen.
+accuracy
+```
+
+# Part 3
+
+```{r}
+#Creating a decision tree model.
+library(tree)
+decisionTreeModel2 <- tree(AHD ~ ., trainingSet)
+summary(decisionTreeModel2)
+tree_pred2 <- predict(decisionTreeModel2, testSet, type = "class")
+
+#creating a table and calculating the mean.
+table(tree_pred2, testSet$AHD)
+mean(tree_pred2 == testSet$AHD)
+```
+
+# Part 4
+
+```{r}
+#display the tree.
+plot(decisionTreeModel2)
+text(decisionTreeModel2, pretty = 0)
+decisionTreeModel2
+```
+
+# Part 5
+
+```{r}
+#creating a new tree using cv.tree
+cv.decisionTreeModel2 = cv.tree(decisionTreeModel2, FUN = prune.misclass)
+cv.decisionTreeModel2
+
+#plotting in a 1 x 2 format.
+par(mfrow=c(1,2))
+plot(cv.decisionTreeModel2$size, cv.decisionTreeModel2$dev, type="b")
+plot(cv.decisionTreeModel2$k, cv.decisionTreeModel2$dev, type="b")
+
+```
+
+# Part 6
+
+```{r}
+##pruning the tree.
+prune.decisionTreeModel2 <- prune.misclass(decisionTreeModel2, best = 8)
+plot(prune.decisionTreeModel2)
+text(prune.decisionTreeModel2, pretty = 0)
+prune.decisionTreeModel2
+```
+
+# Part 7
+
+```{r}
+prune.decisionTreeModel2.pred <- predict(prune.decisionTreeModel2, testSet, type = "class")
+table(prune.decisionTreeModel2.pred, testSet$AHD)
+mean(prune.decisionTreeModel2.pred==testSet$AHD)
+```
+
+
+#----------------------------------------------------------------------------------
+#                               QUESTION AND ANSWERS
+#----------------------------------------------------------------------------------
+
+## Problem 1
+
+#Answer to Q1
+# Out of all the variables, balance held most importance with studentYes following it. studentYes was of importance but not as important as balance. We could clearly see that income was not important.
+ 
+ 
+#Answer to Q2
+# The accuracy for logistic regression model was 97.1 percent and it was the same for decision tree model too.
+
+
+#Answer to Q3
+# We might want that because one of the side might be more pure than the other side so it that is why we would want both branches that are no.
+
+
+#Answer to Q4
+#if balance > 1890.64 
+#  default = Yes 
+#else default = No
+
+
+#Answer to Q5
+# I do not think it is a good idea to prune the tree beacuse if we see the left side of the tree, we do not see any efficient use. We cannot prune the right side of the tree and not the left so I do no think it is a good idea.
+
+## Problem 2
+
+#Answer to Q1
+# ChestPainnonanginal and Ca were three starts so they were the most important ones (***). 
+# Second to them were Sex and ChestPaintypical which had two stars (**).
+
+
+#Answer to Q2
+#  Chest Pain
+#  Thal
+#  Age
+#  MaxHR
+#  Sex
+#  RestBP 
+#  Chol
+#  Ca
+#  Oldpeak
+
+
+#Answer to Q3
+#  Accuracy for logistic regrssion is 88.7% while accuracy for decision tree is 83.6%.
+
+
+#Answer to Q4
+#  When the tree was pruned, the accuracy increased from 83.6% to 87%.
+
+#Answer to Q5
+#  Decision trees would be more meaningful to doctors because they are more interpretable with almost the same accuracy as Logistic Regression. They can be useful for doctors as they can understand it better than logistic regression.
+
+
